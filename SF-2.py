@@ -41,7 +41,7 @@ def encrypt_folder(folder_path):
             file_path = os.path.join(root, file)
             encrypt_file(file_path, key)
 
-def secure_delete(file_path, passes=3):
+def secure_delete(file_path, passes=3, zero_out=False):
     # Overwrite the file with random data multiple times
     with open(file_path, "ba+") as delfile:
         length = delfile.tell()
@@ -49,6 +49,7 @@ def secure_delete(file_path, passes=3):
         with open(file_path, "br+") as delfile:
             delfile.seek(0)
             delfile.write(os.urandom(length))
+            delfile.write(b"\x00" * length if zero_out else os.urandom(length)) # Set binary values to 0 at file level/not raw disk method
     os.remove(file_path)
 
 def delete_folder(folder_path):
