@@ -79,24 +79,47 @@ def decrypt_file(encrypted_file, secret_key, kem):
 
 def process_csv(csv_file):
     """Process files specified in a CSV file."""
-    with open(csv_file, "r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            input_file = row["input_file"]
-            if not os.path.exists(input_file):
-                print(f"Error: File {input_file} not found.")
-                continue
+    try:
+        # Attempt to open the CSV file with utf-8 encoding
+        with open(csv_file, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                input_file = row["input_file"]
+                if not os.path.exists(input_file):
+                    print(f"Error: File {input_file} not found.")
+                    continue
 
-            # Generate keys (returns kem instance as well)
-            public_key, secret_key, kem = generate_keys()
+                # Generate keys (returns kem instance as well)
+                public_key, secret_key, kem = generate_keys()
 
-            # Encrypt file
-            ciphertext, enc_file, encap_time, enc_time, mem_usage = encrypt_file(input_file, public_key)
-            print(f"Encapsulation Time: {encap_time} s, Encryption Time: {enc_time} s, Memory Usage: {mem_usage} MB")
+                # Encrypt file
+                ciphertext, enc_file, encap_time, enc_time, mem_usage = encrypt_file(input_file, public_key)
+                print(f"Encapsulation Time: {encap_time} s, Encryption Time: {enc_time} s, Memory Usage: {mem_usage} MB")
 
-            # Decrypt file using the same kem instance
-            decap_time, dec_time = decrypt_file(enc_file, secret_key, kem)
-            print(f"Decapsulation Time: {decap_time} s, Decryption Time: {dec_time} s")
+                # Decrypt file using the same kem instance
+                decap_time, dec_time = decrypt_file(enc_file, secret_key, kem)
+                print(f"Decapsulation Time: {decap_time} s, Decryption Time: {dec_time} s")
+
+    except UnicodeDecodeError:
+        print("Error: Failed to decode the CSV file in utf-8. Retrying with ISO-8859-1 encoding...")
+        with open(csv_file, "r", encoding="ISO-8859-1") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                input_file = row["input_file"]
+                if not os.path.exists(input_file):
+                    print(f"Error: File {input_file} not found.")
+                    continue
+
+                # Generate keys (returns kem instance as well)
+                public_key, secret_key, kem = generate_keys()
+
+                # Encrypt file
+                ciphertext, enc_file, encap_time, enc_time, mem_usage = encrypt_file(input_file, public_key)
+                print(f"Encapsulation Time: {encap_time} s, Encryption Time: {encap_time} s, Memory Usage: {mem_usage} MB")
+
+                # Decrypt file using the same kem instance
+                decap_time, dec_time = decrypt_file(enc_file, secret_key, kem)
+                print(f"Decapsulation Time: {decap_time} s, Decryption Time: {dec_time} s")
 
 def main():
     if len(sys.argv) != 2:
