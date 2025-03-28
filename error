@@ -1,0 +1,11 @@
+
+
+ line 84, in process_csv
+    for row in reader:
+  File "/usr/lib/python3.11/csv.py", line 110, in __next__
+    self.fieldnames
+  File "/usr/lib/python3.11/csv.py", line 97, in fieldnames
+    self._fieldnames = next(self.reader)
+                       ^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 322, in decode
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xdf in position 51: invalid continuation byte
