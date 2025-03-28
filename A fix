@@ -1,0 +1,67 @@
+import pandas as pd  # Add this import
+
+def process_csv(csv_file):
+    """Process files specified in an Excel or CSV file."""
+    try:
+        # Convert Excel to CSV if needed
+        if csv_file.endswith(".xlsx"):
+            df = pd.read_excel(csv_file, engine="openpyxl")  # Read Excel
+            temp_csv = csv_file.replace(".xlsx", ".csv")
+            df.to_csv(temp_csv, index=False)  # Save as CSV
+            csv_file = temp_csv  # Use the new CSV file
+
+        # Attempt to open the CSV file with utf-8 encoding
+        with open(csv_file, "r", encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+
+            # Check if 'input_file' column exists
+            if "input_file" not in reader.fieldnames:
+                print("Error: 'input_file' column not found in CSV.")
+                return
+
+            for row in reader:
+                input_file = row.get("input_file", "").strip()
+                if not input_file or not os.path.exists(input_file):
+                    print(f"Error: File '{input_file}' not found.")
+                    continue
+
+                # Generate keys (returns kem instance as well)
+                public_key, secret_key, kem = generate_keys()
+
+                # Encrypt file
+                ciphertext, enc_file, encap_time, enc_time, mem_usage = encrypt_file(input_file, public_key)
+                print(f"Encapsulation Time: {encap_time} s, Encryption Time: {enc_time} s, Memory Usage: {mem_usage} MB")
+
+                # Decrypt file using the same kem instance
+                decap_time, dec_time = decrypt_file(enc_file, secret_key, kem)
+                print(f"Decapsulation Time: {decap_time} s, Decryption Time: {dec_time} s")
+
+    except UnicodeDecodeError:
+        print("Error: Failed to decode the CSV file in utf-8. Retrying with ISO-8859-1 encoding...")
+        process_csv_with_encoding(csv_file, "ISO-8859-1")
+
+def process_csv_with_encoding(csv_file, encoding):
+    """Retry processing with a different encoding."""
+    with open(csv_file, "r", encoding=encoding, newline="") as f:
+        reader = csv.DictReader(f)
+
+        if "input_file" not in reader.fieldnames:
+            print("Error: 'input_file' column not found in CSV.")
+            return
+
+        for row in reader:
+            input_file = row.get("input_file", "").strip()
+            if not input_file or not os.path.exists(input_file):
+                print(f"Error: File '{input_file}' not found.")
+                continue
+
+            # Generate keys (returns kem instance as well)
+            public_key, secret_key, kem = generate_keys()
+
+            # Encrypt file
+            ciphertext, enc_file, encap_time, enc_time, mem_usage = encrypt_file(input_file, public_key)
+            print(f"Encapsulation Time: {encap_time} s, Encryption Time: {enc_time} s, Memory Usage: {mem_usage} MB")
+
+            # Decrypt file using the same kem instance
+            decap_time, dec_time = decrypt_file(enc_file, secret_key, kem)
+            print(f"Decapsulation Time: {decap_time} s, Decryption Time: {dec_time} s")
